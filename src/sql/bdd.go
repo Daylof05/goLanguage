@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -37,38 +38,10 @@ func Connection() {
 	if pingErr != nil {
 		log.Fatal(pingErr)
 	}
-
-	fmt.Println("Connecté!!!")
-
-	update := Update{
-		Date:      "26/01/2024 11:59",
-		Fonction:  "CreateFolder",
-		Arguments: "NouveauDossier",
-		Sortie:    "Réussie",
-	}
-	id, err := newUpdate(update)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("New update id:", id)
-
-	updates, err := printUpdates()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, update := range updates {
-		fmt.Printf("Update found: %+v\n", update)
-	}
-
-	// updateprint, err := printUpdate()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println("Update found: ", updateprint)
 }
 
-func newUpdate(update Update) (int64, error) {
-	result, err := db.Exec("INSERT INTO history (date, fonction, arguments, sortie) VALUES (?, ?, ?, ?)", update.Date, update.Fonction, update.Arguments, update.Sortie)
+func WriteUpdate(function string, argument string, sortie string) (int64, error) {
+	result, err := db.Exec("INSERT INTO history (date, fonction, arguments, sortie) VALUES (?, ?, ?, ?)", time.Now(), function, argument, sortie)
 	if err != nil {
 		return 0, fmt.Errorf("addUpdate %v", err)
 	}
@@ -81,7 +54,7 @@ func newUpdate(update Update) (int64, error) {
 	return id, nil
 }
 
-func printUpdates() ([]Update, error) {
+func PrintUpdates() ([]Update, error) {
 	var updates []Update
 
 	rows, err := db.Query("SELECT * FROM history")
@@ -98,25 +71,9 @@ func printUpdates() ([]Update, error) {
 		updates = append(updates, upd)
 	}
 
-	// Check for errors from iterating over rows.
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("printUpdates: %v", err)
 	}
 
 	return updates, nil
 }
-
-// func printUpdate() (Update, error) {
-// 	var update Update
-
-// 	row := db.QueryRow("SELECT * FROM history ")
-// 	if err := row.Scan(&update.ID, &update.Date, &update.Fonction, &update.Arguments, &update.Sortie); err != nil {
-// 		if err == sql.ErrNoRows {
-// 			return update, fmt.Errorf("no update")
-// 		} else {
-// 			return update, fmt.Errorf("updates: %v", err)
-// 		}
-// 	}
-
-// 	return update, nil
-// }

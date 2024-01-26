@@ -4,6 +4,7 @@ import (
 	"os"
 	"project/filesmanagement"
 	"project/foldersmanagement"
+	"project/sql"
 )
 
 func main() {
@@ -11,6 +12,7 @@ func main() {
 	switch os.Args[1] {
 	case "createfolder":
 		foldersmanagement.CreateFolder(os.Args[2])
+		sql.Connection()
 	case "openfolder":
 		foldersmanagement.OpenFolder(os.Args[2])
 	case "renamefolder":

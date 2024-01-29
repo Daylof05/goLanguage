@@ -3,14 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"project/filesmanagement"
 	"project/foldersmanagement"
 	"project/sql"
+
+	"github.com/gin-gonic/gin"
 )
+
+type Folder struct {
+	ID    string `JSON:"id"`
+	Title string `JSON:"title"`
+}
+
+var folders = []Folder{
+	{ID: "1", Title: "AncienDossier"},
+}
 
 func main() {
 
+	router := gin.Default()
+	router.GET("/folders", getFolders)
+	router.POST("/createfolder", createFolderAPI)
+	router.Run("localhost:32244")
 	switch os.Args[1] {
 	case "createfolder":
 		if len(os.Args) != 3 {
@@ -91,4 +107,25 @@ func main() {
 			fmt.Printf("Update found: %+v\n", update)
 		}
 	}
+}
+
+func getFolders(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, folders)
+}
+
+func createFolderAPI(c *gin.Context) {
+	// var newfolder Folder
+
+	// if err := c.BindJSON(&newfolder); err != nil {
+	// 	return
+	// }
+	// folders = append(folders, newfolder)
+	// c.IndentedJSON(http.StatusCreated, newfolder)
+	// foldersmanagement.CreateFolder("NouveauDossierTest")
+	var newfolder Folder
+
+	if err := c.BindJSON(&newfolder); err != nil {
+		return
+	}
+	foldersmanagement.CreateFolder(newfolder.Title)
 }

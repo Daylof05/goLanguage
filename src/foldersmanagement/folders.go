@@ -46,23 +46,23 @@ func RenameFolder(oldTitle string, newTitle string) {
 	if _, err := os.Stat(oldTitle); err != nil {
 		fmt.Println("Folder doesn't exist")
 		sql.Connection()
-		sql.WriteUpdate("foldersmanagement -> CreateFolder", oldTitle+"|"+newTitle, "Fail")
+		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Fail")
 	} else if _, err := os.Stat(newTitle); err == nil {
 		fmt.Println("This folder already exist")
 		sql.Connection()
-		sql.WriteUpdate("foldersmanagement -> CreateFolder", oldTitle+"|"+newTitle, "Fail")
+		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Fail")
 	} else if invalidCharsRegex.MatchString(oldTitle) {
 		fmt.Println("Les noms de dossiers ne peuvent pas contenir certains characteres spéciaux")
 		sql.Connection()
-		sql.WriteUpdate("foldersmanagement -> CreateFolder", oldTitle+"|"+newTitle, "Fail")
+		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Fail")
 	} else if invalidCharsRegex.MatchString(newTitle) {
 		fmt.Println("Les noms de dossiers ne peuvent pas contenir certains characteres spéciaux")
 		sql.Connection()
-		sql.WriteUpdate("foldersmanagement -> CreateFolder", oldTitle+"|"+newTitle, "Fail")
+		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Fail")
 	} else {
 		os.Rename(oldTitle, newTitle)
 		sql.Connection()
-		sql.WriteUpdate("foldersmanagement -> CreateFolder", oldTitle+"|"+newTitle, "Success")
+		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Success")
 	}
 }
 

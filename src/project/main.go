@@ -3,30 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+	"project/apimanagement"
 	"project/filesmanagement"
 	"project/foldersmanagement"
 	"project/sql"
-
-	"github.com/gin-gonic/gin"
 )
 
-type Folder struct {
-	ID    string `JSON:"id"`
-	Title string `JSON:"title"`
-}
-
-var folders = []Folder{
-	{ID: "1", Title: "AncienDossier"},
-}
-
 func main() {
-
-	router := gin.Default()
-	router.GET("/folders", getFolders)
-	router.POST("/createfolder", createFolderAPI)
-	router.Run("localhost:32244")
 	switch os.Args[1] {
 	case "createfolder":
 		if len(os.Args) != 3 {
@@ -98,7 +82,7 @@ func main() {
 		}
 	case "history":
 		sql.Connection()
-		sql.WriteUpdate("sql -> WriteUpdate", "none", "Success")
+		sql.WriteUpdate("sql -> History", "none", "Success")
 		updates, err := sql.PrintUpdates()
 		if err != nil {
 			log.Fatal(err)
@@ -106,26 +90,7 @@ func main() {
 		for _, update := range updates {
 			fmt.Printf("Update found: %+v\n", update)
 		}
+	case "API":
+		apimanagement.ConnectionAPI()
 	}
-}
-
-func getFolders(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, folders)
-}
-
-func createFolderAPI(c *gin.Context) {
-	// var newfolder Folder
-
-	// if err := c.BindJSON(&newfolder); err != nil {
-	// 	return
-	// }
-	// folders = append(folders, newfolder)
-	// c.IndentedJSON(http.StatusCreated, newfolder)
-	// foldersmanagement.CreateFolder("NouveauDossierTest")
-	var newfolder Folder
-
-	if err := c.BindJSON(&newfolder); err != nil {
-		return
-	}
-	foldersmanagement.CreateFolder(newfolder.Title)
 }

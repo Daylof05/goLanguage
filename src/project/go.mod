@@ -10,7 +10,10 @@ replace project/apimanagement => ../apimanagement
 
 replace project/sql => ../sql
 
+replace project/apiclient => ../apiclient
+
 require (
+	project/apiclient v0.0.0-00010101000000-000000000000
 	project/apimanagement v0.0.0-00010101000000-000000000000
 	project/filesmanagement v0.0.0-00010101000000-000000000000
 	project/foldersmanagement v0.0.0-00010101000000-000000000000

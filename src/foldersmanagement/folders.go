@@ -7,14 +7,23 @@ import (
 	"regexp"
 )
 
-func CreateFolder(title string) {
+type FolderManager interface {
+	CreateFolder(title string) error
+	OpenFolder(title string) error
+	RenameFolder(oldTitle string, newtitle string) error
+	DeleteFolder(title string) error
+}
+
+type CmdFolderManager struct{}
+
+func (fm CmdFolderManager) CreateFolder(title string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
 	if _, err := os.Stat(title); err == nil {
 		fmt.Println("Folder already exists")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> CreateFolder", title, "Fail")
 	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de dossiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> CreateFolder", title, "Fail")
 	} else {
@@ -22,16 +31,17 @@ func CreateFolder(title string) {
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> CreateFolder", title, "Success")
 	}
+	return nil
 }
 
-func OpenFolder(title string) {
+func (fm CmdFolderManager) OpenFolder(title string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
 	if _, err := os.Stat(title); err != nil {
 		fmt.Println("Folder doesn't exist")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> OpenFolder", title, "Fail")
 	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de dossiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> OpenFolder", title, "Fail")
 	} else {
@@ -39,9 +49,10 @@ func OpenFolder(title string) {
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> OpenFolder", title, "Success")
 	}
+	return nil
 }
 
-func RenameFolder(oldTitle string, newTitle string) {
+func (fm CmdFolderManager) RenameFolder(oldTitle string, newTitle string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
 	if _, err := os.Stat(oldTitle); err != nil {
 		fmt.Println("Folder doesn't exist")
@@ -52,11 +63,11 @@ func RenameFolder(oldTitle string, newTitle string) {
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Fail")
 	} else if invalidCharsRegex.MatchString(oldTitle) {
-		fmt.Println("Les noms de dossiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Fail")
 	} else if invalidCharsRegex.MatchString(newTitle) {
-		fmt.Println("Les noms de dossiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Fail")
 	} else {
@@ -64,16 +75,17 @@ func RenameFolder(oldTitle string, newTitle string) {
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> RenameFolder", oldTitle+"|"+newTitle, "Success")
 	}
+	return nil
 }
 
-func DeleteFolder(title string) {
+func (fm CmdFolderManager) DeleteFolder(title string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
 	if _, err := os.Stat(title); err != nil {
 		fmt.Println("Folder doesn't exist")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> DeleteFolder", title, "Fail")
 	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de dossiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> DeleteFolder", title, "Fail")
 	} else {
@@ -81,4 +93,5 @@ func DeleteFolder(title string) {
 		sql.Connection()
 		sql.WriteUpdate("foldersmanagement -> DeleteFolder", title, "Success")
 	}
+	return nil
 }

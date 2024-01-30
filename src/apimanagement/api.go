@@ -31,7 +31,7 @@ func ConnectionAPI() {
 	router.POST("/createfile", createFileAPI)
 	router.GET("/readfile/:title", readContentFileAPI)
 	router.GET("/history", historyAPI)
-	router.PATCH("/renamefile/:oldTitle", renameFileAPI)
+	router.PATCH("/renamefile/:oldTitle/:newTitle", renameFileAPI)
 	router.PATCH("/changecontentfile/:title", changeContentFileAPI)
 	router.DELETE("deletefile/:title", deleteFileAPI)
 	router.Run("localhost:32244")
@@ -43,13 +43,23 @@ func createFolderAPI(c *gin.Context) {
 	if err := c.BindJSON(&newfolder); err != nil {
 		return
 	}
-	foldersmanagement.CreateFolder(newfolder.Title)
+	folderManager := foldersmanagement.CmdFolderManager{}
+	err := folderManager.CreateFolder(newfolder.Title)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func deleteFolderAPI(c *gin.Context) {
 	title := c.Param("title")
 
-	foldersmanagement.DeleteFolder(title)
+	folderManager := foldersmanagement.CmdFolderManager{}
+	err := folderManager.DeleteFolder(title)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func openFolderAPI(c *gin.Context) {
@@ -77,44 +87,62 @@ func openFolderAPI(c *gin.Context) {
 func renameFolderAPI(c *gin.Context) {
 	oldTitle := c.Param("oldTitle")
 	newTitle := c.Param("newTitle")
+
+	folderManager := foldersmanagement.CmdFolderManager{}
 	if oldTitle == "" || newTitle == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Ancien ou nouveau nom du dossier manquant"})
 		return
 	}
-	foldersmanagement.RenameFolder(oldTitle, newTitle)
+
+	err := folderManager.RenameFolder(oldTitle, newTitle)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"message": "Dossier renommé avec succès"})
 }
 
 func createFileAPI(c *gin.Context) {
 	var newfile Files
 
+	fileManager := filesmanagement.CmdFileManager{}
 	if err := c.BindJSON(&newfile); err != nil {
 		return
 	}
-	filesmanagement.Creationfile(newfile.Title, newfile.Content)
+	err := fileManager.Creationfile(newfile.Title, newfile.Content)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func deleteFileAPI(c *gin.Context) {
 	title := c.Param("title")
 
-	filesmanagement.DeleteFile(title)
-}
-
-type RenameFileRequest struct {
-	NewTitle string `json:"newTitle"`
+	fileManager := filesmanagement.CmdFileManager{}
+	err := fileManager.DeleteFile(title)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func renameFileAPI(c *gin.Context) {
+	newTitle := c.Param("newTitle")
 	oldTitle := c.Param("oldTitle")
 
-	var req RenameFileRequest
-	if err := c.BindJSON(&req); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	fileManager := filesmanagement.CmdFileManager{}
+	if oldTitle == "" || newTitle == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Ancien ou nouveau nom du dossier manquant"})
 		return
 	}
 
-	filesmanagement.Renamefile(oldTitle, req.NewTitle)
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "Fichier renommé"})
+	err := fileManager.Renamefile(oldTitle, newTitle)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Dossier renommé avec succès"})
 }
 
 type ChangeContentRequest struct {
@@ -125,28 +153,33 @@ func changeContentFileAPI(c *gin.Context) {
 	title := c.Param("title")
 	var req ChangeContentRequest
 
+	fileManager := filesmanagement.CmdFileManager{}
 	if err := c.BindJSON(&req); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	filesmanagement.Changecontenufile(title, req.NewContent)
+	err := fileManager.Changecontenufile(title, req.NewContent)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Contenu du fichier mis à jour"})
 }
 
 func readContentFileAPI(c *gin.Context) {
 	title := c.Param("title")
 
-	content, err := os.ReadFile(title)
+	fileManager := filesmanagement.CmdFileManager{}
+
+	sql.Connection()
+	sql.WriteUpdate("filesmanagement -> Readfile", title, "Success")
+	err := fileManager.Readfile(title)
+
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	sql.Connection()
-	sql.WriteUpdate("filesmanagement -> Readfile", title, "Success")
-
-	c.String(http.StatusOK, string(content))
 }
 
 func historyAPI(c *gin.Context) {

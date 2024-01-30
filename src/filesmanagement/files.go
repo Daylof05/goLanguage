@@ -3,21 +3,29 @@ package filesmanagement
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"project/sql"
 	"regexp"
 )
 
-func Creationfile(title string, content string) {
+type FilesManager interface {
+	Creationfile(title string, content string) error
+	Readfile(title string) error
+	Renamefile(oldTitle string, newTitle string) error
+	Changecontenufile(title string, content string) error
+	DeleteFile(title string) error
+}
+
+type CmdFileManager struct{}
+
+func (fm CmdFileManager) Creationfile(title string, content string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
-	// Création
 	if _, err := os.Stat(title); err == nil {
-		fmt.Println("Le fichier existe déjà avant le test.")
+		fmt.Println("File already exist")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Creationfile", title+"|"+content, "Fail")
 	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de fichiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Files can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Creationfile", title+"|"+content, "Fail")
 	} else {
@@ -27,58 +35,58 @@ func Creationfile(title string, content string) {
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Creationfile", title+"|"+content, "Success")
 	}
+	return nil
 }
 
-func Readfile(title string) {
+func (fm CmdFileManager) Readfile(title string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
-	// Lecture
 	if _, err := os.Stat(title); err != nil {
-		fmt.Println("Fichier Inexistant.")
+		fmt.Println("File doesn't exist")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Readfile", title, "Fail")
 	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de fichiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Readfile", title, "Fail")
 	} else {
-		read, _ := ioutil.ReadFile(title)
+		read, _ := os.ReadFile(title)
 		fmt.Println(string(read))
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Readfile", title, "Success")
 	}
+	return nil
 }
 
-func Renamefile(title string, newtitle string) {
+func (fm CmdFileManager) Renamefile(oldTitle string, newTitle string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
-	// Renommer
-	if _, err := os.Stat(title); err != nil {
-		fmt.Println("Fichier Inexistant.")
+	if _, err := os.Stat(oldTitle); err != nil {
+		fmt.Println("File doesn't exist")
 		sql.Connection()
-		sql.WriteUpdate("filesmanagement -> Renamefile", title+"|"+newtitle, "Fail")
-	} else if _, err := os.Stat(newtitle); err == nil {
-		fmt.Println("Le fichier existe déjà avant le test.")
+		sql.WriteUpdate("filesmanagement -> Renamefile", oldTitle+"|"+newTitle, "Fail")
+	} else if _, err := os.Stat(newTitle); err == nil {
+		fmt.Println("File already exist")
 		sql.Connection()
-		sql.WriteUpdate("filesmanagement -> Renamefile", title+"|"+newtitle, "Fail")
-	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de fichiers ne peuvent pas contenir certains characteres spéciaux")
+		sql.WriteUpdate("filesmanagement -> Renamefile", oldTitle+"|"+newTitle, "Fail")
+	} else if invalidCharsRegex.MatchString(oldTitle) {
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
-		sql.WriteUpdate("filesmanagement -> Renamefile", title+"|"+newtitle, "Fail")
+		sql.WriteUpdate("filesmanagement -> Renamefile", oldTitle+"|"+newTitle, "Fail")
 	} else {
-		os.Rename(title, newtitle)
+		os.Rename(oldTitle, newTitle)
 		sql.Connection()
-		sql.WriteUpdate("filesmanagement -> Renamefile", title+"|"+newtitle, "Success")
+		sql.WriteUpdate("filesmanagement -> Renamefile", oldTitle+"|"+newTitle, "Success")
 	}
+	return nil
 }
 
-func Changecontenufile(title string, content string) {
+func (fm CmdFileManager) Changecontenufile(title string, content string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
-	// Changer contenu
 	if _, err := os.Stat(title); err != nil {
-		fmt.Println("Fichier Inexistant.")
+		fmt.Println("File doesn't exist")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Changecontenufile", title+"|"+content, "Fail")
 	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de fichiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Changecontenufile", title+"|"+content, "Fail")
 	} else {
@@ -88,16 +96,17 @@ func Changecontenufile(title string, content string) {
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Changecontenufile", title+"|"+content, "Success")
 	}
+	return nil
 }
 
-func DeleteFile(title string) {
+func (fm CmdFileManager) DeleteFile(title string) error {
 	invalidCharsRegex := regexp.MustCompile(`[<>:"/\|?*]`)
 	if _, err := os.Stat(title); err != nil {
-		fmt.Println("Fichier Inexistant.")
+		fmt.Println("File doesn't exist")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> DeleteFile", title, "Fail")
 	} else if invalidCharsRegex.MatchString(title) {
-		fmt.Println("Les noms de fichiers ne peuvent pas contenir certains characteres spéciaux")
+		fmt.Println("Folders can't have special characters")
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> DeleteFile", title, "Fail")
 	} else {
@@ -105,4 +114,5 @@ func DeleteFile(title string) {
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> DeleteFile", title, "Success")
 	}
+	return nil
 }

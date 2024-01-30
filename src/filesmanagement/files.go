@@ -51,6 +51,7 @@ func (fm CmdFileManager) Readfile(title string) error {
 	} else {
 		read, _ := os.ReadFile(title)
 		fmt.Println(string(read))
+		// fmt.Println(os.ReadFile(title))
 		sql.Connection()
 		sql.WriteUpdate("filesmanagement -> Readfile", title, "Success")
 	}

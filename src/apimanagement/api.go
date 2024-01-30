@@ -127,9 +127,19 @@ func deleteFileAPI(c *gin.Context) {
 	}
 }
 
+// type RenameFileRequest struct {
+// 	NewTitle string `json:"newTitle"`
+// }
+
 func renameFileAPI(c *gin.Context) {
 	newTitle := c.Param("newTitle")
 	oldTitle := c.Param("oldTitle")
+	// var req RenameFileRequest
+	// if err := c.BindJSON(&req); err != nil {
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	return
+	// }
+	// newTitle := req.NewTitle
 
 	fileManager := filesmanagement.CmdFileManager{}
 	if oldTitle == "" || newTitle == "" {
@@ -143,6 +153,14 @@ func renameFileAPI(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Dossier renommé avec succès"})
+
+	// fileManager := filesmanagement.CmdFileManager{}
+	// err := fileManager.Renamefile(oldTitle, newTitle)
+	// if err != nil {
+	// 	c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 	return
+	// }
+	// c.IndentedJSON(http.StatusOK, gin.H{"message": "Fichier renommé"})
 }
 
 type ChangeContentRequest struct {
@@ -172,13 +190,14 @@ func readContentFileAPI(c *gin.Context) {
 
 	fileManager := filesmanagement.CmdFileManager{}
 
-	sql.Connection()
-	sql.WriteUpdate("filesmanagement -> Readfile", title, "Success")
 	err := fileManager.Readfile(title)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	} else {
+		sql.Connection()
+		sql.WriteUpdate("filesmanagement -> Readfile", title, "Success")
 	}
 }
 
